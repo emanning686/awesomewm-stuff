@@ -48,6 +48,14 @@ end
 beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
 beautiful.font = "Hack Nerd Font 10"
 
+beautiful.wibar_bg = "#0b162a"
+beautiful.wibar_fg = "#ffffff"
+
+beautiful.taglist_bg_focus = "#1f2c3d"
+
+beautiful.tasklist_bg_normal = "#0b162a"
+beautiful.tasklist_bg_focus = "#1f2c3d"
+
 -- This is used later as the default terminal and editor to run.
 terminal = "xterm"
 editor = os.getenv("EDITOR") or "nano"
@@ -62,9 +70,9 @@ modkey = "Mod4"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
-    awful.layout.suit.tile,
     awful.layout.suit.fair,
     awful.layout.suit.floating,
+--     awful.layout.suit.tile,
 --     awful.layout.suit.tile.left,
 --     awful.layout.suit.tile.bottom,
 --     awful.layout.suit.tile.top,
@@ -165,7 +173,37 @@ awful.screen.connect_for_each_screen(function(s)
     set_wallpaper(s)
 
     -- Each screen has its own tag table.
-    awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
+    -- awful.tag({ "1", "2", "3", "4"}, s, awful.layout.layouts[1])
+    awful.tag.add("First tag", {
+        icon               = "/home/eric/.config/awesome/icons/google-chrome.svg",
+        layout             = awful.layout.layouts[1],
+        screen             = s,
+        selected           = true,
+    })
+    
+    awful.tag.add("Second tag", {
+        icon = "/home/eric/.config/awesome/icons/code-braces.svg",
+        layout             = awful.layout.layouts[1],
+        screen = s,
+    })
+
+    awful.tag.add("Third tag", {
+        icon = "/home/eric/.config/awesome/icons/folder.svg",
+        layout             = awful.layout.layouts[1],
+        screen = s,
+    })
+
+    awful.tag.add("Fourth tag", {
+        icon = "/home/eric/.config/awesome/icons/music.svg",
+        layout             = awful.layout.layouts[1],
+        screen = s,
+    })
+
+    awful.tag.add("Fifth tag", {
+        icon = "/home/eric/.config/awesome/icons/flask.svg",
+        layout             = awful.layout.layouts[1],
+        screen = s,
+    })
 
     -- Create a promptbox for each screen
     s.mypromptbox = awful.widget.prompt()
@@ -177,18 +215,136 @@ awful.screen.connect_for_each_screen(function(s)
                            awful.button({ }, 3, function () awful.layout.inc(-1) end),
                            awful.button({ }, 4, function () awful.layout.inc( 1) end),
                            awful.button({ }, 5, function () awful.layout.inc(-1) end)))
+                           
     -- Create a taglist widget
+    -- s.mytaglist = awful.widget.taglist {
+    --     screen  = s,
+    --     filter  = awful.widget.taglist.filter.all,
+    --     buttons = taglist_buttons
+    -- }
     s.mytaglist = awful.widget.taglist {
         screen  = s,
         filter  = awful.widget.taglist.filter.all,
+        style   = {
+            shape = gears.shape.square
+        },
+        layout   = {
+            -- spacing = 0,
+            -- spacing_widget = {
+            --     color  = '#dddddd',
+            --     shape  = gears.shape.square,
+            --     widget = wibox.widget.separator,
+            -- },
+            layout  = wibox.layout.fixed.horizontal
+        },
+        widget_template = {
+            {
+                {
+                    {
+                        {
+                            {
+                                id     = 'index_role',
+                                widget = wibox.widget.textbox,
+                            },
+                            margins = 4,
+                            widget  = wibox.container.margin,
+                        },
+                        bg     = '#ffffff',
+                        shape  = gears.shape.square,
+                        widget = wibox.widget.imagebox,
+                    },
+                    {
+                        {
+                            id     = 'icon_role',
+                            widget = wibox.widget.imagebox,
+                        },
+                        margins = 0,
+                        widget  = wibox.container.margin,
+                    },
+                    -- {
+                    --     id     = 'text_role',
+                    --     widget = wibox.widget.textbox,
+                    -- },
+                    layout = wibox.layout.fixed.horizontal,
+                },
+                left  = 0,
+                right = 0,
+                widget = wibox.container.margin
+            },
+            id     = 'background_role',
+            widget = wibox.container.background,
+            -- Add support for hover colors and an index label
+            create_callback = function(self, c3, index, objects) --luacheck: no unused args
+                self:get_children_by_id('index_role')[1].markup = '<b> '..index..' </b>'
+                self:connect_signal('mouse::enter', function()
+                    if self.bg ~= '#26464b' then
+                        self.backup     = self.bg
+                        self.has_backup = true
+                    end
+                    self.bg = '#26464b'
+                end)
+                self:connect_signal('mouse::leave', function()
+                    if self.has_backup then self.bg = self.backup end
+                end)
+            end,
+            update_callback = function(self, c3, index, objects) --luacheck: no unused args
+                self:get_children_by_id('index_role')[1].markup = '<b> '..index..' </b>'
+            end,
+        },
         buttons = taglist_buttons
     }
 
     -- Create a tasklist widget
     s.mytasklist = awful.widget.tasklist {
-        screen  = s,
-        filter  = awful.widget.tasklist.filter.currenttags,
-        buttons = tasklist_buttons
+        screen   = s,
+        filter   = awful.widget.tasklist.filter.currenttags,
+        buttons  = tasklist_buttons,
+        style    = {
+            shape_border_width = 1,
+            shape_border_color = '#77777700',
+            shape  = gears.shape.square,
+        },
+        layout   = {
+            spacing = 15,
+            spacing_widget = {
+                {
+                    forced_width = 5,
+                    forced_height = 10,
+                    shape        = gears.shape.rounded_bar,
+                    widget       = wibox.widget.separator
+                },
+                valign = 'center',
+                halign = 'center',
+                widget = wibox.container.place,
+            },
+            layout  = wibox.layout.flex.horizontal
+        },
+        -- Notice that there is *NO* wibox.wibox prefix, it is a template,
+        -- not a widget instance.
+        widget_template = {
+            {
+                {
+                    {
+                        {
+                            id     = 'icon_role',
+                            widget = wibox.widget.imagebox,
+                        },
+                        margins = 2,
+                        widget  = wibox.container.margin,
+                    },
+                    {
+                        id     = 'text_role',
+                        widget = wibox.widget.textbox,
+                    },
+                    layout = wibox.layout.fixed.horizontal,
+                },
+                left  = 10,
+                right = 10,
+                widget = wibox.container.margin
+            },
+            id     = 'background_role',
+            widget = wibox.container.background,
+        },
     }
 
     -- Create the wibox
@@ -441,6 +597,11 @@ awful.rules.rules = {
                      placement = awful.placement.no_overlap+awful.placement.no_offscreen
      }
     },
+    { rule = { class = "Spotify" },
+      properties = { tag = tag[4],
+                     screen = 2
+     }
+    },
 
     -- Floating clients.
     { rule_any = {
@@ -555,7 +716,7 @@ client.connect_signal("manage", function (c)
 end)
 
 -- Autostart applications
--- awful.spawn.with_shell("picom --experimental-backends &")
--- awful.spawn.with_shell("xrandr --output DP-0 --off --output DP-1 --off --output HDMI-0 --off --output DP-2 --primary --mode 2560x1440 --pos 2560x0 --rotate normal --output DP-3 --off --output DP-4 --mode 2560x1080 --pos 0x180 --rotate normal --output DP-5 --off --output USB-C-0 --off")
--- awful.spawn.with_shell("wal -R &")
--- awful.spawn.with_shell("nitrogen --restore &")
+awful.spawn.with_shell("picom --experimental-backends &")
+awful.spawn.with_shell("xrandr --output DP-0 --off --output DP-1 --off --output HDMI-0 --off --output DP-2 --primary --mode 2560x1440 --pos 2560x0 --rotate normal --output DP-3 --off --output DP-4 --mode 2560x1080 --pos 0x180 --rotate normal --output DP-5 --off --output USB-C-0 --off")
+awful.spawn.with_shell("nitrogen --restore &")
+awful.spawn.with_shell("wal -R -n")
